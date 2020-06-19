@@ -1,6 +1,6 @@
 from __future__ import print_function
 from time import sleep
-#from gpiozero import MCP3008
+from gpiozero import MCP3008
 import pickle
 import os.path
 import datetime
@@ -17,10 +17,8 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 SOLAR_SPREADSHEET_ID = os.environ['SOLAR_SPREADSHEET']
 SOLAR_RANGE_NAME = os.environ['SOLAR_SHEET'] + '!' + os.environ['SOLAR_RANGE']
 
-# TODO: Figure out why GPIO Zero cannot be found.
-#
-# PHOTO_SHADE = MCP3008(channel=3)
-# PHOTO_SUN = MCP3008(channel=6)
+PHOTO_SHADE = MCP3008(channel=3)
+PHOTO_SUN = MCP3008(channel=6)
 # 
 # pot = MCP3008(channel=0)
 # therm = MCP3008(channel=2)
@@ -32,7 +30,8 @@ THERM_AIR = os.environ['THERMAL_SENSOR']
 
 def get_temp(sensor_file):
     found_data = False
-    
+
+    # TODO: Check for existence of device before trying to read it.
     while found_data == False:
         with open(sensor_file, 'r') as sense_data:
             for line in sense_data:
@@ -46,7 +45,7 @@ def get_temp(sensor_file):
     print('Temp: {}'.format(temp))
     return temp    
 
-def append_current_temps(service):
+def append_current_readings(service):
     """Append current temperatures to spreadsheet.
     Adds the data and returns number of additions.
     """
@@ -55,9 +54,12 @@ def append_current_temps(service):
     time_string = t.strftime('%Y-%m-%d %H:%M:%S')
     
     print('Timestamp: {}'.format(time_string))
+    print('Photo shade: {}'.format(PHOTO_SHADE.value))
+    print('Photo sun: {}'.format(PHOTO_SUN.value))
     values = [
         [
-            time_string, get_temp(THERM_OVEN), get_temp(THERM_AIR)
+            time_string, get_temp(THERM_OVEN), get_temp(THERM_AIR),
+            PHOTO_SHADE.value, PHOTO_SUN.value
         ]
     ]
     body = {
@@ -141,16 +143,17 @@ def main():
 
     service = build('sheets', 'v4', credentials=creds)
 
-    # Add current values to sheet
-    append_current_temps(service)
+    while True:
+        # Add current values to sheet
+        append_current_readings(service)
 
-    #print_rows(service)
+        #print_rows(service)
 
-#     print_last_row(service)
-#     print('Photo shade: {}'.format(PHOTO_SHADE.value))
-#     print('Photo sun: {}'.format(PHOTO_SUN.value))
+        # print_last_row(service)
 
-    #print_sheet_info(service)
+        #print_sheet_info(service)
+        #sleep(5)
+        sleep(60)
 
 if __name__ == '__main__':
     main()
