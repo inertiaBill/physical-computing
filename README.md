@@ -15,6 +15,15 @@ export THERMAL_PROB=/sys/bus/w1/devices/28-000007bb1844/w1_slave
 export THERMAL_SENSOR=/sys/bus/w1/devices/28-000007ba00af/w1_slave
 ```
 
+# Prepare virtual environment
+
+Active virtual environment.
+
+Install gpiozero.
+- `pip3 install gpiozero`
+
+# Troubleshooting
+
 If you see,
 
 ```
